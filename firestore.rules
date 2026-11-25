@@ -7,7 +7,7 @@ service cloud.firestore {
     match /users/{uid} {
       allow read, delete: if owner(uid);
       allow create, update: if owner(uid)
-        && request.resource.data.keys().hasOnly(['name','banks','ready','daily','monthly','opening','theme','mode','country','phone'])
+        && request.resource.data.keys().hasOnly(['name','banks','ready','daily','monthly','opening','theme','mode','country','phone','control','payments'])
         && amt(request.resource.data.get('daily',0)) && amt(request.resource.data.get('monthly',0))
         && (request.resource.data.get('opening',null) == null || amt(request.resource.data.opening))
         && request.resource.data.get('banks',[]) is list && request.resource.data.get('banks',[]).size() <= 12
@@ -15,23 +15,36 @@ service cloud.firestore {
       match /transactions/{id} {
         allow read, delete: if owner(uid);
         allow create, update: if owner(uid) && request.resource.data.id == id
-          && request.resource.data.keys().hasOnly(['id','title','amount','credit','category','time','source','bank','fixed','notes','method','reference','account'])
+          && request.resource.data.keys().hasOnly(['id','title','amount','credit','category','time','source','bank','fixed','notes','method','reference','account','confidence','reconciliation'])
           && amt(request.resource.data.amount) && request.resource.data.amount > 0
           && str(request.resource.data.title,200) && request.resource.data.title.size()>0
           && str(request.resource.data.notes,2000) && request.resource.data.time is int
           && request.resource.data.credit is bool && request.resource.data.fixed is bool
           && request.resource.data.source in ['Manual','Reminder','Bank Notification'];
       }
+      match /bankAccounts/{id} {
+        allow read, delete: if owner(uid);
+        allow create, update: if owner(uid) && request.resource.data.id == id
+          && request.resource.data.keys().hasOnly(['id','bank','nickname','lastFour','opening'])
+          && request.resource.data.lastFour.matches('[0-9]{4}') && amt(request.resource.data.opening)
+          && str(request.resource.data.bank,100) && str(request.resource.data.nickname,80);
+      }
+      match /categories/{id} {
+        allow read, delete: if owner(uid);
+        allow create, update: if owner(uid) && request.resource.data.keys().hasOnly(['name'])
+          && str(request.resource.data.name,40) && request.resource.data.name.size()>0;
+      }
       match /plans/{id} {
         allow read, delete: if owner(uid);
         allow create, update: if owner(uid) && request.resource.data.id == id
-          && request.resource.data.keys().hasOnly(['id','title','amount','due','kind','progress'])
+          && request.resource.data.keys().hasOnly(['id','title','amount','due','kind','progress','clock','frequency','enabled'])
           && str(request.resource.data.title,200) && amt(request.resource.data.amount)
           && amt(request.resource.data.progress) && request.resource.data.kind in ['Bill','Reminder','Savings goal','Subscription'];
       }
       match /reportPreferences/daily {
         allow read, delete: if owner(uid);
-        allow create, update: if owner(uid) && request.resource.data.keys().hasOnly(['name','relationship','enabled','consent','recipient','time','zone'])
+        allow create, update: if owner(uid) && request.resource.data.keys().hasOnly(['name','relationship','enabled','consent','recipient','time','zone','fields'])
+          && request.resource.data.get('fields',[]).hasOnly(['categories','budget','balances','transactions'])
           && request.resource.data.enabled is bool && request.resource.data.consent is bool
           && (!request.resource.data.enabled || request.resource.data.consent)
           && request.resource.data.recipient.matches('[+][1-9][0-9]{7,14}')

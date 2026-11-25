@@ -1,0 +1,3 @@
+<resources><style name="FinoraWindow" parent="@android:style/Theme.Material.Light.NoActionBar">
+<item name="android:windowSplashScreenAnimatedIcon">@drawable/finora_mark</item><item name="android:windowSplashScreenBackground">#F7F9F6</item>
+</style></resources>

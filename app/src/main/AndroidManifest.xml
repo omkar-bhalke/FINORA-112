@@ -1,12 +1,24 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
   <uses-permission android:name="android.permission.INTERNET"/>
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
   <queries>
     <package android:name="com.sbi.lotusintouch"/>
-    <package android:name="com.snapwork.hdfc"/>
+    <package android:name="com.hdfcbank.android.now"/>
     <package android:name="com.csam.icici.bank.imobile"/>
     <package android:name="com.axis.mobile"/>
+    <package android:name="com.google.android.apps.nbu.paisa.user"/>
+    <package android:name="com.phonepe.app"/>
+    <package android:name="net.one97.paytm"/>
+    <package android:name="com.bom.lifestylebanking"/>
+    <package android:name="com.mbanking.mgb.mgb"/>
+    <package android:name="com.boi.ua.android"/>
+    <package android:name="com.canarabank.mobility"/>
+    <package android:name="com.Version1"/>
+    <package android:name="com.infrasoft.uboi"/>
+    <package android:name="com.kotak.bank.mobile"/>
+    <package android:name="com.iexceed.ib.digitalbankingprod"/>
   </queries>
-  <application android:label="FINORA" android:allowBackup="false" android:usesCleartextTraffic="false" android:theme="@android:style/Theme.Material.Light.NoActionBar">
+  <application android:name=".FinoraApplication" android:icon="@drawable/finora_mark" android:label="FINORA" android:allowBackup="false" android:usesCleartextTraffic="false" android:theme="@style/FinoraWindow">
     <activity android:name=".MainActivity" android:exported="true">
       <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
     </activity>
