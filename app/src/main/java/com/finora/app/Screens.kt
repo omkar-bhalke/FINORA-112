@@ -1,6 +1,5 @@
 package com.finora.app
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -25,11 +24,7 @@ private fun dateTime(t: Long) =
 fun Home(p: Profile, rows: List<Entry>, u: FirebaseUser, go: (String) -> Unit) {
     Text(today.format(DateTimeFormatter.ofPattern("EEEE, d MMMM")))
     Heading("Hello, " + p.name.ifBlank { u.displayName ?: "there" })
-    Column(
-        Modifier.fillMaxWidth()
-            .background(Color(0xff154f42), RoundedCornerShape(16.dp))
-            .padding(20.dp)
-    ) {
+    BrandSurface {
         Text("Calculated balance", color = Color.White)
         var show by rememberSaveable { mutableStateOf(true) }
         Text(
@@ -62,13 +57,23 @@ fun Home(p: Profile, rows: List<Entry>, u: FirebaseUser, go: (String) -> Unit) {
                 } else TextButton({ go("Settings") }) { Text("Set budget") }
             }
         }
-    Button({ go("Add") }) { Text("Add transaction") }
+    Button(
+        { go("Add") },
+        Modifier.fillMaxWidth().heightIn(min = 48.dp),
+        shape = RoundedCornerShape(14.dp),
+    ) {
+        Text("Add transaction")
+    }
     listOf(
             "Planning" to "Bills & savings goals",
             "Access" to "Review bank notifications",
             "Parent" to "Parent Connect",
         )
-        .forEach { (r, t) -> OutlinedButton({ go(r) }) { Text(t) } }
+        .forEach { (r, t) ->
+            OutlinedButton({ go(r) }, Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp)) {
+                Text(t)
+            }
+        }
     val imported = rows.filter { it.source == "Bank Notification" }
     Panel {
         Heading("Bank imports")
@@ -111,7 +116,13 @@ fun History(rows: List<Entry>, go: (String) -> Unit) {
         source = it
     }
     TextButton({ oldest = !oldest }) { Text(if (oldest) "Oldest first" else "Newest first") }
-    Button({ go("Add") }) { Text("Add transaction") }
+    Button(
+        { go("Add") },
+        Modifier.fillMaxWidth().heightIn(min = 48.dp),
+        shape = RoundedCornerShape(14.dp),
+    ) {
+        Text("Add transaction")
+    }
     var cat by rememberSaveable { mutableStateOf("All") }
     var bank by rememberSaveable { mutableStateOf("All") }
     var after by rememberSaveable { mutableStateOf("") }

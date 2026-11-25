@@ -77,8 +77,12 @@ fun Access(m: LedgerModel, p: Profile) {
     val snapshot = remember(revision) { store.all }
     val granted =
         remember(revision) {
-            ctx.getSystemService(NotificationManager::class.java)
-                .isNotificationListenerAccessGranted(ComponentName(ctx, BankListener::class.java))
+            if (android.os.Build.VERSION.SDK_INT >= 27) {
+                ctx.getSystemService(NotificationManager::class.java)
+                    .isNotificationListenerAccessGranted(ComponentName(ctx, BankListener::class.java))
+            } else {
+                ctx.packageName in androidx.core.app.NotificationManagerCompat.getEnabledListenerPackages(ctx)
+            }
         }
     Heading("Bank Notification Access")
     Text(

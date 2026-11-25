@@ -2,30 +2,29 @@ package com.finora.app
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
 import androidx.datastore.preferences.core.*
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.*
-import com.google.android.gms.auth.api.signin.*
-import com.google.android.gms.common.api.ApiException
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.*
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 
 val accents =
     linkedMapOf(
@@ -63,6 +62,10 @@ fun FinoraTheme(
                 primary = accent,
                 background = Color(0xfff7f9f6),
                 surface = Color.White,
+                secondaryContainer = Color(0xffdaecdf),
+                surfaceVariant = Color(0xffeaf0ea),
+                outlineVariant = Color(0xffd6e1d9),
+                onSurfaceVariant = Color(0xff495d53),
                 onBackground = Color(0xff1d2a25),
             )
     MaterialTheme(colorScheme = colors, content = content)
@@ -71,7 +74,7 @@ fun FinoraTheme(
 @Composable
 fun Panel(content: @Composable ColumnScope.() -> Unit) {
     Surface(
-        shape = RoundedCornerShape(15.dp),
+        shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
@@ -85,7 +88,7 @@ fun Panel(content: @Composable ColumnScope.() -> Unit) {
 
 @Composable
 fun Heading(s: String) {
-    Text(s, style = MaterialTheme.typography.headlineSmall)
+    Text(s, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
 }
 
 @Composable
@@ -134,6 +137,14 @@ class MainActivity : ComponentActivity() {
                 appearanceState[stringPreferencesKey("theme")] ?: "Emerald Finance",
                 appearanceState[stringPreferencesKey("mode")] ?: "System",
             ) {
+                val view = LocalView.current
+                val light = MaterialTheme.colorScheme.background.luminance() > .5f
+                SideEffect {
+                    WindowCompat.getInsetsController(window, view).apply {
+                        isAppearanceLightStatusBars = light
+                        isAppearanceLightNavigationBars = light
+                    }
+                }
                 Surface(
                     Modifier.fillMaxSize().systemBarsPadding(),
                     color = MaterialTheme.colorScheme.background,
@@ -176,119 +187,6 @@ private fun Session() {
 }
 
 @Composable
-private fun Login(auth: FirebaseAuth) {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var err by remember { mutableStateOf("") }
-    var busy by remember { mutableStateOf(false) }
-    fun submit(action: suspend () -> Unit) {
-        if (busy) return
-        busy = true
-        scope.launch {
-            try {
-                action()
-            } catch (e: Exception) {
-                err = e.localizedMessage.orEmpty()
-            } finally {
-                busy = false
-            }
-        }
-    }
-    val launcher =
-        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result
-            ->
-            submit {
-                val token =
-                    GoogleSignIn.getSignedInAccountFromIntent(result.data)
-                        .getResult(ApiException::class.java)
-                        .idToken ?: error("Google ID token unavailable")
-                auth.signInWithCredential(GoogleAuthProvider.getCredential(token, null)).await()
-            }
-        }
-    Column(
-        Modifier.verticalScroll(rememberScrollState()).padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        androidx.compose.foundation.Image(
-            androidx.compose.ui.res.painterResource(R.drawable.finora_mark),
-            "FINORA logo",
-            Modifier.size(60.dp),
-        )
-        Heading("FINORA")
-        Text("Understand Your Money. Control Your Spending.")
-        Heading("Welcome")
-        Button(
-            {
-                val id =
-                    context.resources.getIdentifier(
-                        "default_web_client_id",
-                        "string",
-                        context.packageName,
-                    )
-                if (id == 0)
-                    err =
-                        "Enable Google sign-in and download the updated Firebase Android configuration."
-                else
-                    launcher.launch(
-                        GoogleSignIn.getClient(
-                                context,
-                                GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                                    .requestEmail()
-                                    .requestIdToken(context.getString(id))
-                                    .build(),
-                            )
-                            .signInIntent
-                    )
-            },
-            enabled = !busy,
-        ) {
-            Text("Continue with Google")
-        }
-        Field("Email", email) { email = it }
-        OutlinedTextField(
-            password,
-            { password = it },
-            label = { Text("Password") },
-            visualTransformation = PasswordVisualTransformation(),
-            singleLine = true,
-        )
-        Button(
-            { submit { auth.signInWithEmailAndPassword(email.trim(), password).await() } },
-            enabled = !busy,
-        ) {
-            Text("Sign in")
-        }
-        OutlinedButton(
-            { submit { auth.createUserWithEmailAndPassword(email.trim(), password).await() } },
-            enabled = !busy,
-        ) {
-            Text("Create account")
-        }
-        if (busy) CircularProgressIndicator()
-        Text(err, color = MaterialTheme.colorScheme.error)
-        var policy by remember { mutableStateOf("") }
-        TextButton({ policy = "Privacy policy" }) { Text("Privacy policy") }
-        TextButton({ policy = "Terms of use" }) { Text("Terms of use") }
-        if (policy.isNotBlank())
-            AlertDialog(
-                { policy = "" },
-                title = { Text(policy) },
-                text = {
-                    Text(
-                        if (policy == "Privacy policy")
-                            "FINORA stores your profile and saved financial records in Firebase. Optional bank notification review runs on this device. Only approved imports are saved to your ledger. Optional Parent Connect sends authorized summaries to your verified recipient through WhatsApp."
-                        else
-                            "Review transactions and account details before saving or sharing them. FINORA calculates summaries from your recorded data. You control notification access and reporting consent."
-                    )
-                },
-                confirmButton = { TextButton({ policy = "" }) { Text("Close") } },
-            )
-    }
-}
-
-@Composable
 private fun Account(model: LedgerModel, user: FirebaseUser) {
     val p by model.profile.collectAsState()
     val data by model.entries.collectAsState()
@@ -296,8 +194,12 @@ private fun Account(model: LedgerModel, user: FirebaseUser) {
     val profile = p
     if (profile == null) {
         Column(Modifier.padding(24.dp)) {
-            CircularProgressIndicator()
-            Text(error)
+            if (error.isEmpty()) CircularProgressIndicator()
+            else {
+                Heading("Couldn’t load your profile")
+                Text(error)
+                OutlinedButton({ FirebaseAuth.getInstance().signOut() }) { Text("Back to sign in") }
+            }
         }
         return
     }
@@ -334,7 +236,13 @@ private fun Account(model: LedgerModel, user: FirebaseUser) {
         Scaffold(
             bottomBar = {
                 if (route in tabs)
-                    NavigationBar {
+                    NavigationBar(
+                        modifier =
+                            Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                .clip(RoundedCornerShape(22.dp)),
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        windowInsets = WindowInsets(0, 0, 0, 0),
+                    ) {
                         tabs.forEachIndexed { i, t ->
                             NavigationBarItem(
                                 selected = route == t,
@@ -351,7 +259,7 @@ private fun Account(model: LedgerModel, user: FirebaseUser) {
                                     Icon(
                                         listOf(
                                             Icons.Default.Home,
-                                            Icons.Default.List,
+                                            Icons.AutoMirrored.Filled.List,
                                             Icons.Default.DateRange,
                                             Icons.Default.Star,
                                             Icons.Default.Person,
@@ -415,20 +323,33 @@ private fun Account(model: LedgerModel, user: FirebaseUser) {
                                                 }
                                             )
                                             Text(user.email.orEmpty())
-                                            listOf(
+                                            NavigationGroup(
+                                                "Your account",
+                                                listOf(
                                                     "Settings" to "Personal information & budgets",
-                                                    "Banks" to "Selected banks",
-                                                    "Access" to "Bank notification access",
                                                     "Security" to "Privacy and security",
-                                                    "Accounts" to "Bank accounts",
-                                                    "Categories" to "Custom categories",
-                                                    "Planning" to "Bills & savings goals",
-                                                    "Control" to "Spending control",
                                                     "Parent" to "Parent Connect",
-                                                )
-                                                .forEach { (r, t) ->
-                                                    Panel { TextButton({ go(r) }) { Text(t) } }
-                                                }
+                                                ),
+                                                go,
+                                            )
+                                            NavigationGroup(
+                                                "Banking",
+                                                listOf(
+                                                    "Banks" to "Selected banks",
+                                                    "Accounts" to "Bank accounts",
+                                                    "Access" to "Bank notification access",
+                                                ),
+                                                go,
+                                            )
+                                            NavigationGroup(
+                                                "Planning",
+                                                listOf(
+                                                    "Planning" to "Bills & savings goals",
+                                                    "Categories" to "Custom categories",
+                                                    "Control" to "Spending control",
+                                                ),
+                                                go,
+                                            )
                                             OutlinedButton({
                                                 ctx.inbox(user.uid)
                                                     .edit()

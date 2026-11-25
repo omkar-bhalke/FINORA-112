@@ -18,7 +18,7 @@
     <package android:name="com.kotak.bank.mobile"/>
     <package android:name="com.iexceed.ib.digitalbankingprod"/>
   </queries>
-  <application android:name=".FinoraApplication" android:icon="@drawable/finora_mark" android:label="FINORA" android:allowBackup="false" android:usesCleartextTraffic="false" android:theme="@style/FinoraWindow">
+  <application android:name=".FinoraApplication" android:icon="@mipmap/finora_launcher" android:roundIcon="@mipmap/finora_launcher" android:label="FINORA" android:allowBackup="false" android:usesCleartextTraffic="false" android:theme="@style/FinoraWindow">
     <activity android:name=".MainActivity" android:exported="true">
       <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
     </activity>
