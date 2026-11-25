@@ -19,17 +19,7 @@ class StartupTest {
     fun signedOutInstallOpensConfiguredProviders() {
         assertEquals("finoraaaaaa", FirebaseApp.getInstance().options.projectId)
         app.onNodeWithText("Welcome back").assertIsDisplayed()
-        val google = app.onNodeWithText("Continue with Google")
-        val activity = app.activity
-        if (
-            activity.resources.getIdentifier(
-                "default_web_client_id",
-                "string",
-                activity.packageName,
-            ) == 0
-        )
-            google.assertDoesNotExist()
-        else google.assertExists()
+        app.onNodeWithText("Continue with Google").performScrollTo().assertIsDisplayed()
         app.onNodeWithText("Firebase setup required").assertDoesNotExist()
     }
 
