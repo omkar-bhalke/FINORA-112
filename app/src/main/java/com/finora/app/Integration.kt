@@ -21,7 +21,22 @@ data class IntegrationStatus(
     val history: List<Delivery>,
 )
 
+data class StatementPreview(
+    val start: Long,
+    val end: Long,
+    val income: Long,
+    val expenses: Long,
+    val count: Int,
+    val extra: String?,
+)
+
 interface ReportsApi {
+    @GET("v1/preview")
+    suspend fun preview(
+        @Header("Authorization") auth: String,
+        @Header("X-Firebase-AppCheck") app: String,
+    ): StatementPreview
+
     @DELETE("v1/account")
     suspend fun deleteAccount(
         @Header("Authorization") auth: String,
@@ -43,8 +58,18 @@ interface ReportsApi {
 
 class ReportClient @javax.inject.Inject constructor() {
     suspend fun <T> request(call: suspend ReportsApi.(String, String) -> T): T {
-        require(BuildConfig.API_URL.isNotBlank()) {
-            "Report service URL is not configured for this build."
+        val origin =
+            BuildConfig.API_URL.ifEmpty {
+                    com.google.firebase.database.FirebaseDatabase.getInstance()
+                        .getReference("serviceConfig/reportApiUrl")
+                        .get()
+                        .await()
+                        .getValue(String::class.java)
+                        .orEmpty()
+                }
+                .trimEnd('/')
+        require(Regex("""https://[A-Za-z0-9.-]+""").matches(origin)) {
+            "Configure your Render HTTPS address in Firebase serviceConfig/reportApiUrl."
         }
         val jwt =
             FirebaseAuth.getInstance().currentUser?.getIdToken(false)?.await()?.token
@@ -52,7 +77,7 @@ class ReportClient @javax.inject.Inject constructor() {
         val check = FirebaseAppCheck.getInstance().getAppCheckToken(false).await().token
         val api =
             Retrofit.Builder()
-                .baseUrl(BuildConfig.API_URL + "/")
+                .baseUrl(origin + "/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()
                 .create(ReportsApi::class.java)

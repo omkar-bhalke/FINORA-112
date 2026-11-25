@@ -32,3 +32,5 @@ The checked-in APK's debug signing certificate has SHA-1 `45:FF:5B:C2:C8:73:19:E
 ## Verification
 
 Run `./gradlew testDebugUnitTest assembleDebug`. With a Firestore emulator listening on localhost:8181 using project demo-finora and this repository's rules, run `python3 tests/firestore_rules.py` to check user isolation, blocked production permits, and invalid amounts. Bank eligibility, notification access and reminder timing require physical-device acceptance testing. The Android scheduler is best-effort under OS power management.
+
+See [Parent Connect deployment](PARENT-CONNECT.md) for Render, Firebase Realtime Database and WhatsApp setup. The APK supports runtime service discovery at `serviceConfig/reportApiUrl`.

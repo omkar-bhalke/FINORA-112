@@ -417,40 +417,26 @@ fun Parent(m: LedgerModel) {
             Text(f.replaceFirstChar { it.uppercase() })
         }
     }
-    val rows by m.entries.collectAsState()
-    val end = System.currentTimeMillis()
-    val period = rows.filter { it.time in (end - 86400000) until end }
-    Panel {
-        Heading("Preview · last 24 hours")
-        Text("Income · " + money(period.filter { it.credit }.sumOf { it.amount }))
-        Text("Expenses · " + money(period.spent()))
-        Text("${period.size} transactions")
-        if ("categories" in fields)
-            period
-                .filterNot { it.credit }
-                .groupBy { if (it.fixed) "Fixed" else it.category }
-                .forEach { (c, items) -> Text(c + " · " + money(items.spent())) }
-        if ("budget" in fields) m.profile.value?.let { Text("Daily limit · " + money(it.daily)) }
-        if ("balances" in fields) {
-            val opening = m.profile.value?.opening
-            if (opening == null) Text("Opening balance unavailable")
-            else {
-                val prior = rows.filter { it.time < end - 86400000 }
-                val initial =
-                    opening + prior.filter { it.credit }.sumOf { it.amount } - prior.spent()
-                Text("Calculated opening · " + money(initial))
-                Text(
-                    "Calculated closing · " +
-                        money(
-                            initial + period.filter { it.credit }.sumOf { it.amount } -
-                                period.spent()
-                        )
-                )
-            }
-        }
-        if ("transactions" in fields)
-            period.forEach { Text(it.title + " · " + it.category + " · " + money(it.amount)) }
+    val client = LocalReports.current
+    var preview by remember { mutableStateOf<StatementPreview?>(null) }
+    OutlinedButton({ m.write { preview = client.request { a, b -> preview(a, b) } } }) {
+        Text("Preview saved report settings on Render")
     }
+    preview?.let { report ->
+        Panel {
+            Heading("Last 24 hours")
+            Text(
+                Instant.ofEpochMilli(report.start).atZone(ZoneId.systemDefault()).toString() +
+                    " – " +
+                    Instant.ofEpochMilli(report.end).atZone(ZoneId.systemDefault())
+            )
+            Text("Income · " + money(report.income))
+            Text("Expenses · " + money(report.expenses))
+            Text("${report.count} transactions")
+            report.extra?.let { Text(it) }
+        }
+    }
+    BotLog(m.uid)
     Button(
         {
             m.write({ feedback = "Report preferences saved" }) {
@@ -477,7 +463,6 @@ fun Parent(m: LedgerModel) {
     ) {
         Text("Save report settings")
     }
-    val client = LocalReports.current
     var status by remember { mutableStateOf<IntegrationStatus?>(null) }
     var challenge by remember { mutableStateOf<Challenge?>(null) }
     OutlinedButton({ m.write { status = client.request { a, b -> status(a, b) } } }) {
