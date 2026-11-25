@@ -23,8 +23,6 @@ import androidx.navigation.compose.*
 import com.google.android.gms.auth.api.signin.*
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.FirebaseApp
-import com.google.firebase.appcheck.FirebaseAppCheck
-import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
 import com.google.firebase.auth.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -129,9 +127,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val firebase = FirebaseApp.initializeApp(this)
-        if (firebase != null)
-            FirebaseAppCheck.getInstance()
-                .installAppCheckProviderFactory(PlayIntegrityAppCheckProviderFactory.getInstance())
+        if (firebase != null) configureAppCheck()
         setContent {
             val appearanceState by appearance.data.collectAsState(initial = emptyPreferences())
             FinoraTheme(

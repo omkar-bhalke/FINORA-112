@@ -57,6 +57,39 @@ fun BotLog(uid: String) {
                 "Status · " + (row.child("delivery").value ?: row.child("state").value ?: "Unknown")
             )
             Text("Send attempts · " + (row.child("attempts").value ?: 0))
+            var show by remember(row.key) { mutableStateOf(false) }
+            androidx.compose.material3.TextButton({ show = !show }) {
+                Text(if (show) "Hide details" else "View statement & message history")
+            }
+            if (show) {
+                val saved = row.child("statement")
+                if (saved.exists()) {
+                    Text("Recipient · •••• " + saved.child("recipientEnding").value)
+                    val labels =
+                        listOf(
+                            "Report period",
+                            "Income",
+                            "Expenses",
+                            "Transactions",
+                            "Shared details",
+                        )
+                    saved.child("parameters").children.forEachIndexed { i, parameter ->
+                        Text((labels.getOrNull(i) ?: "Detail") + " · " + parameter.value)
+                    }
+                }
+                row.child("events")
+                    .children
+                    .sortedBy { it.child("at").getValue(Long::class.java) ?: 0L }
+                    .forEach { event ->
+                        event.child("at").getValue(Long::class.java)?.let { time ->
+                            Text(
+                                format.format(Instant.ofEpochMilli(time)) +
+                                    " · " +
+                                    event.child("kind").value.toString().replace('_', ' ')
+                            )
+                        }
+                    }
+            }
         }
     }
 }

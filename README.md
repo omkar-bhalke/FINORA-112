@@ -19,13 +19,13 @@ The listener checks twelve allowlisted banking package IDs, ignores other sender
 
 ## Integration and verification limits
 
-Recipient verification and sending run in the separate FINOR-RABDER service. The Android app never holds Meta or Firebase Admin credentials. Bank Account Aggregator integration requires a contracted provider. The assistant uses deterministic ledger calculations. Spending control operates on launches through FINORA. Device-wide app restriction, live bank synchronization and cross-source statement reconciliation are unavailable. Live Google authentication, real bank notification formats, production Firebase permissions and WhatsApp delivery require deployment/device verification.
+Recipient verification and sending run in the separate FINORA-RABDER service. The Android app never holds Meta or Firebase Admin credentials. Bank Account Aggregator integration requires a contracted provider. The assistant uses deterministic ledger calculations. Spending control operates on launches through FINORA. Device-wide app restriction, live bank synchronization and cross-source statement reconciliation are unavailable. Live Google authentication, real bank notification formats, production Firebase permissions and WhatsApp delivery require deployment/device verification.
 
 ## Banking and reporting setup
 
 The Account Aggregator route requires an eligible regulated Financial Information User and an onboarded provider. Confirm the partnership and consent scope before implementing account discovery, authorization, retrieval and revocation with that provider. See [Sahamati onboarding](https://sahamati.org.in/how-to-join-the-account-aggregator-network-to-share-and-access-financial-data/) and the [participant directory](https://sahamati.org.in/providers/).
 
-Set Gradle property `finoraApiUrl` to the deployed FINOR-RABDER HTTPS origin before building to enable verification, delivery status and server-side account deletion. Users can save report preferences before deployment. Approval of templates and recipient consent must precede live sending.
+Set Gradle property `finoraApiUrl` to the deployed FINORA-RABDER HTTPS origin before building to enable verification, delivery status and server-side account deletion. Users can save report preferences before deployment. Approval of templates and recipient consent must precede live sending.
 
 The checked-in APK's debug signing certificate has SHA-1 `45:FF:5B:C2:C8:73:19:E6:D3:4A:82:DD:69:AD:95:F3:F6:8F:56:EE`. Other machines and CI generate different debug keys. Register the fingerprint for each installation you test.
 
