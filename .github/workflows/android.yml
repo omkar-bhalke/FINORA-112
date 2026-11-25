@@ -12,11 +12,6 @@ jobs:
       - uses: android-actions/setup-android@v3
         with: {packages: "platform-tools"}
       - uses: gradle/actions/setup-gradle@v4
-      - name: Restore Firebase client registration
-        env:
-          CLIENT_JSON: ${{ secrets.FIREBASE_ANDROID_JSON }}
-        run: |
-          if [ -n "$CLIENT_JSON" ]; then printf '%s' "$CLIENT_JSON" > app/google-services.json; fi
       - run: ./gradlew testDebugUnitTest assembleDebug
       - uses: actions/upload-artifact@v4
         with:

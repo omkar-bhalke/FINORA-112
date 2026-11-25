@@ -1,11 +1,11 @@
 plugins {
     id("com.android.application")
+    id("com.google.gms.google-services")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.kapt")
     id("com.google.dagger.hilt.android")
     id("org.jetbrains.kotlin.plugin.compose")
 }
-if (file("google-services.json").exists()) apply(plugin = "com.google.gms.google-services")
 android {
     namespace = "com.finora.app"
     compileSdk = 35
@@ -13,8 +13,8 @@ android {
         applicationId = "com.finora.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "0.2.0"
+        versionCode = 3
+        versionName = "0.2.1"
     }
     testOptions { unitTests.isIncludeAndroidResources = true }
     buildFeatures { compose = true; buildConfig = true }

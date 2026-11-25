@@ -4,12 +4,12 @@ Native Android personal finance app built from scratch using the uploaded FINORA
 
 ## Build and sign in
 
-Install JDK 17 and Android SDK Platform 35. Place the supplied Firebase Android client configuration at `app/google-services.json` and run `./gradlew testDebugUnitTest assembleDebug`. Install the output with `adb install -r app/build/outputs/apk/debug/app-debug.apk`. The checked-in build under `apk/` includes the supplied client registration. A build without registration opens a setup message.
+Install JDK 17 and Android SDK Platform 35. The Firebase Android client registration is included at `app/google-services.json`. Run `./gradlew testDebugUnitTest assembleDebug`. Install the output with `adb install -r app/build/outputs/apk/debug/app-debug.apk`. The checked-in build under `apk/` includes the supplied client registration. Gradle requires that registration to build the APK.
 
 1. Enable Email/Password in Firebase Authentication. Create a Firestore database and deploy the owner-scoped rules and index with `firebase deploy --project finoraaaaaa --only firestore,storage`. Review existing rules before deploying to an existing database.
 2. For Google login, register the signing key's SHA-1 and SHA-256 from `./gradlew signingReport`, enable the Google provider and download the refreshed Android configuration with its web OAuth client. The originally supplied JSON has no OAuth clients.
 3. Register the app for Play Integrity before enforcing Firebase App Check. Test enforcement on a Play-distributed, signed build. Keep production signing material outside this repository.
-4. For Actions, set repository secret `FIREBASE_ANDROID_JSON` to the client JSON. The pipeline without it exercises the setup-state build. Download the APK artifact from a successful build.
+4. GitHub Actions uses the same Android client registration as the local build and tests the signed-out startup screen. Download the APK artifact from a successful build.
 
 ## Implemented flows
 

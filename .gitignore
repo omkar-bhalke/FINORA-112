@@ -5,6 +5,7 @@ local.properties
 *.jks
 *.keystore
 google-services.json
+!/app/google-services.json
 .env
 
 .kotlin/
