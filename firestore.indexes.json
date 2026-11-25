@@ -1,0 +1,1 @@
+{"indexes":[],"fieldOverrides":[{"collectionGroup":"reportPreferences","fieldPath":"enabled","indexes":[{"order":"ASCENDING","queryScope":"COLLECTION_GROUP"},{"order":"ASCENDING","queryScope":"COLLECTION"}]}]}

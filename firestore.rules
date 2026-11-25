@@ -1,0 +1,44 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{db}/documents {
+    function owner(uid) { return request.auth != null && request.auth.uid == uid; }
+    function amt(a) { return a is int && a >= 0 && a <= 999999999999; }
+    function str(s,n) { return s is string && s.size() <= n; }
+    match /users/{uid} {
+      allow read, delete: if owner(uid);
+      allow create, update: if owner(uid)
+        && request.resource.data.keys().hasOnly(['name','banks','ready','daily','monthly','opening','theme','mode','country','phone'])
+        && amt(request.resource.data.get('daily',0)) && amt(request.resource.data.get('monthly',0))
+        && (request.resource.data.get('opening',null) == null || amt(request.resource.data.opening))
+        && request.resource.data.get('banks',[]) is list && request.resource.data.get('banks',[]).size() <= 12
+        && str(request.resource.data.get('name',''),100);
+      match /transactions/{id} {
+        allow read, delete: if owner(uid);
+        allow create, update: if owner(uid) && request.resource.data.id == id
+          && request.resource.data.keys().hasOnly(['id','title','amount','credit','category','time','source','bank','fixed','notes','method','reference','account'])
+          && amt(request.resource.data.amount) && request.resource.data.amount > 0
+          && str(request.resource.data.title,200) && request.resource.data.title.size()>0
+          && str(request.resource.data.notes,2000) && request.resource.data.time is int
+          && request.resource.data.credit is bool && request.resource.data.fixed is bool
+          && request.resource.data.source in ['Manual','Reminder','Bank Notification'];
+      }
+      match /plans/{id} {
+        allow read, delete: if owner(uid);
+        allow create, update: if owner(uid) && request.resource.data.id == id
+          && request.resource.data.keys().hasOnly(['id','title','amount','due','kind','progress'])
+          && str(request.resource.data.title,200) && amt(request.resource.data.amount)
+          && amt(request.resource.data.progress) && request.resource.data.kind in ['Bill','Reminder','Savings goal','Subscription'];
+      }
+      match /reportPreferences/daily {
+        allow read, delete: if owner(uid);
+        allow create, update: if owner(uid) && request.resource.data.keys().hasOnly(['name','relationship','enabled','consent','recipient','time','zone'])
+          && request.resource.data.enabled is bool && request.resource.data.consent is bool
+          && (!request.resource.data.enabled || request.resource.data.consent)
+          && request.resource.data.recipient.matches('[+][1-9][0-9]{7,14}')
+          && request.resource.data.time.matches('([01][0-9]|2[0-3]):[0-5][0-9]')
+          && str(request.resource.data.zone,80);
+      }
+      match /reportHistory/{id} {allow read: if owner(uid);}
+    }
+  }
+}
