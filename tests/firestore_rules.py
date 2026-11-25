@@ -44,6 +44,19 @@ class RuleTests(unittest.TestCase):
         self.assertEqual(request("PATCH", "/users/rules-owner/integrations/recipient",
                                  "rules-owner", {"productionApproved":{"booleanValue":True}}), 403)
 
+    def test_reviewed_transaction_round_trip(self):
+        path = "/users/rules-owner/transactions/test"
+        data = {k: {"stringValue": v} for k, v in {
+            "id":"test", "title":"Groceries", "notes":"", "category":"Food",
+            "source":"Bank Notification", "bank":"State Bank of India", "reference":"ABC123",
+            "account":"", "method":"", "reconciliation":"User confirmed"
+        }.items()}
+        data.update(amount={"integerValue":"12599"}, time={"integerValue":"1000"},
+                    confidence={"doubleValue":0.85}, credit={"booleanValue":False}, fixed={"booleanValue":False})
+        self.assertEqual(request("PATCH", path, "rules-owner", data), 200)
+        self.assertEqual(request("GET", path, "rules-other"), 403)
+        self.assertEqual(request("DELETE", path, "rules-owner"), 200)
+
     def test_no_negative_amount(self):
         self.assertEqual(request("PATCH", "/users/rules-owner", "rules-owner",
                                  {"daily":{"integerValue":"-1"}}), 403)

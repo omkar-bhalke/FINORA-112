@@ -16,6 +16,7 @@ android {
         versionCode = 1
         versionName = "0.1.0"
     }
+    testOptions { unitTests.isIncludeAndroidResources = true }
     buildFeatures { compose = true; buildConfig = true }
     defaultConfig {
         val apiUrl = providers.gradleProperty("finoraApiUrl").orElse("").get()
@@ -49,5 +50,9 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
     implementation("com.google.firebase:firebase-storage")
     implementation("com.google.firebase:firebase-messaging")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
+    testImplementation(platform("androidx.compose:compose-bom:2024.12.01"))
+    testImplementation("androidx.compose.ui:ui-test-junit4")
+    testImplementation("org.robolectric:robolectric:4.14.1")
     testImplementation("junit:junit:4.13.2")
 }
